@@ -11,8 +11,8 @@ export const connectToDB = async () => {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "buzznotify",
+    await mongoose.connect(process.env.MONGODB_URL, {
+      dbName: "snippet",
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
