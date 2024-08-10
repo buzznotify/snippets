@@ -1,11 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user";
-import { createOrganization } from "@/backend/organization/services/organization";
 import { connectToDB } from "@/backend/database/db";
-import { createApp, mapAppAndUser } from "@/backend/app/services/app";
-import { getAppUsersByUserId, getAppsById } from "@/backend/app/services/app";
-const SECRET_KEY = "a whole story";
+const SECRET_KEY = "iaYKhE43OUkZcirX7YoFXM78bO3gW46h";
 export async function createUser(name, email, password) {
   const encodedPassword = await bcrypt.hash(password, 10);
   const user = new User({
@@ -63,10 +60,6 @@ export async function signUp(name, email, password) {
     return false;
   }
   user = await createUser(name, email, password);
-  const app_name = `${name}'s app`;
-  const app = await createApp(app_name);
-  await mapAppAndUser(app._id, user._id)
-
   return true;
 }
 
@@ -99,16 +92,13 @@ export const authRequired = (handler) => async (request, response) => {
   try {
     await connectToDB();
     const token = request.headers.authorization;
-    const appId = request.headers.app_id
 
     if (!token) {
       return response.status(401).json({ message: "Unauthorized" });
     }
 
     const { userId } = await verifyToken(token);
-
     request.userId = userId;
-    request.appId = appId;
 
     return await handler(request, response);
   } catch (error) {
@@ -116,11 +106,3 @@ export const authRequired = (handler) => async (request, response) => {
     return response.status(500).send("Failed to verify token");
   }
 };
-
-
-export async function listApps(user_id){
-const app_users = await getAppUsersByUserId(user_id)
-const app_ids = app_users.map(app_user=>app_user.app_id)
-const apps = await getAppsById(app_ids)
-return apps
-}
