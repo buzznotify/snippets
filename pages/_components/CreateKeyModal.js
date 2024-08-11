@@ -20,7 +20,7 @@ function CreateKeyModal({ children }) {
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>Create Key</Dialog.Title>
         <Dialog.Description size="2" mb="4">
-          Create a short and memorable key which starts with //
+          Create a short and memorable key.
         </Dialog.Description>
 
         <Flex direction="column" gap="3">
@@ -41,16 +41,15 @@ function CreateKeyModal({ children }) {
               Value
             </Text>
             <TextField.Root placeholder="Keyword" size="3" type="url">
-              <TextField.Slot></TextField.Slot>
               <TextField.Slot>
-                <Separator orientation="vertical" />
                 <Select.Root defaultValue="apple">
-                  <Select.Trigger radius="large" variant="ghost" />
+                  <Select.Trigger size="1" radius="large" variant="soft" />
                   <Select.Content>
                     <Select.Item value="apple">Text</Select.Item>
                     <Select.Item value="orange">Link</Select.Item>
                   </Select.Content>
                 </Select.Root>
+                <Separator orientation="vertical" />
               </TextField.Slot>
             </TextField.Root>
           </label>
