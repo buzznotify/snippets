@@ -6,6 +6,10 @@ const snippetSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    type: {
+        type: String,
+        required: true
+    },
     keyName: {
         type: String,
         required: true

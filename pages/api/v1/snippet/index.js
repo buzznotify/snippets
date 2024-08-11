@@ -1,13 +1,20 @@
 import { authRequired } from "@/backend/user/services/user";
 import { createSnippet, updateSnippet, deleteSnippet, getSnippet } from "@/backend/snippet/services/snippet";
+const SnippetType = {
+    TEXT: 'text',
+    URL: 'url'
+};
 export default authRequired(async function handler(request, response) {
     if (request.method === "POST") {
         try {
             const body = await request.body;
             const user_id = request.userId
 
-            const { keyName, value } = body;
-            const message = await createSnippet(user_id, keyName, value);
+            const { keyName, value, type } = body;
+            if (!Object.values(SnippetType).includes(type)) {
+                return response.status(400).json({ message: "Invalid snippet type" });
+            }
+            const message = await createSnippet(user_id, keyName, value, type);
 
             return response.status(200).json({ message: message });
         } catch (error) {
@@ -26,7 +33,7 @@ export default authRequired(async function handler(request, response) {
             console.error(error);
             return response.status(500).send("Failed to update snippet");
         }
-    }else if (request.method === "DELETE") {
+    } else if (request.method === "DELETE") {
         try {
             const body = await request.body;
             const user_id = request.userId
@@ -38,7 +45,7 @@ export default authRequired(async function handler(request, response) {
             console.error(error);
             return response.status(500).send("Failed to delete snippet");
         }
-    }else if (request.method === "GET") {
+    } else if (request.method === "GET") {
         try {
             const snippet_id = await request.query.snippet_id;
             const user_id = request.userId

@@ -1,13 +1,13 @@
 import {Snippet} from "../models/snippet";
 
-export const createSnippet = async (user_id, keyName, value) => {
+export const createSnippet = async (user_id, keyName, value, type) => {
     console.log(user_id, keyName, value);
     let snippet;
     snippet = await Snippet.findOne({ user_id: user_id, keyName: keyName });
     if (snippet) {
         return `keyName ${keyName} already exists.`;
     } else {
-        snippet = new Snippet({ user_id: user_id, keyName: keyName, value: value });
+        snippet = new Snippet({ user_id: user_id, keyName: keyName, value: value, type: type });
         await snippet.save();
         return `Snippet created successfully`;
     }
