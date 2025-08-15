@@ -1,4 +1,4 @@
-import dataSyncService from '../../../../lib/redis/DataSyncService.js';
+import dataSyncService from '../../../../../lib/redis/DataSyncService.js';
 
 /**
  * Data Sync Status API Endpoint

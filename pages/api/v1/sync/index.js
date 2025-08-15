@@ -1,5 +1,5 @@
-import { connectToDB } from '../../../backend/database/db.js';
-import dataSyncService from '../../../lib/redis/DataSyncService.js';
+import { connectToDB } from '../../../../backend/database/db.js';
+import dataSyncService from '../../../../lib/redis/DataSyncService.js';
 
 /**
  * Data Sync API Endpoint
