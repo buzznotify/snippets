@@ -1,5 +1,5 @@
-import { authRequired } from "@/backend/user/services/user";
-import { createSnippet, updateSnippet, deleteSnippet, getSnippet } from "@/backend/snippet/services/snippet";
+import { authRequired } from "@/backend/user/services/user-cached";
+import { createSnippet, updateSnippet, deleteSnippet, getSnippet } from "@/backend/snippet/services/snippet-cached";
 const SnippetType = {
     TEXT: 'text',
     URL: 'url'

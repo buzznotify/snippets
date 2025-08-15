@@ -1,5 +1,5 @@
-import { authRequired } from "@/backend/user/services/user";
-import { getAllSnippets } from "@/backend/snippet/services/snippet";
+import { authRequired } from "@/backend/user/services/user-cached";
+import { getAllSnippets } from "@/backend/snippet/services/snippet-cached";
 export default authRequired(async function handler(request, response) {
     if (request.method === "GET") {
         try {

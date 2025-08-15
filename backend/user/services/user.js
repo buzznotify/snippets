@@ -2,7 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user";
 import { connectToDB } from "@/backend/database/db";
-const SECRET_KEY = "iaYKhE43OUkZcirX7YoFXM78bO3gW46h";
+import { env } from "@/lib/env.js";
+
+const SECRET_KEY = env.SECRET_KEY;
 export async function createUser(name, email, password) {
   const encodedPassword = await bcrypt.hash(password, 10);
   const user = new User({

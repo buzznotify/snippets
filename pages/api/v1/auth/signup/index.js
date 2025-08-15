@@ -1,4 +1,4 @@
-import { signUp } from "@/backend/user/services/user";
+import { signUp } from "@/backend/user/services/user-cached";
 import { connectToDB } from "@/backend/database/db";
 
 export default async function handler(req, res) {

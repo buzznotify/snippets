@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import timestampMixin from "@/backend/mixins/timestamp";
+import timestampMixin from "../../mixins/timestamp.js";
 
 const userSchema = mongoose.Schema({
     name: {
