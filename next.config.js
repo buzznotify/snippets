@@ -1,5 +1,4 @@
-module.exports = {
-  pages: "./pages/**/*.js",
+export default {
   trailingSlash: true,
   reactStrictMode: false,
 };

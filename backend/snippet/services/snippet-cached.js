@@ -257,7 +257,7 @@ export const getSnippetByKeyName = async (user_id, keyName) => {
  */
 export const syncExistingSnippetsToCache = async () => {
     try {
-        console.log('🔄 Starting bulk sync of existing snippets to cache...');
+        console.log(' Starting bulk sync of existing snippets to cache...');
 
         // Get all published snippets from database
         const allSnippets = await Snippet.find({ status: "published" });
@@ -296,18 +296,18 @@ export const syncExistingSnippetsToCache = async () => {
                 await cacheService.cacheUserSnippets(userId, snippets.map(s => s.toObject()));
 
                 totalSynced += snippets.length;
-                console.log(`✅ Synced ${snippets.length} snippets for user ${userId}`);
+                console.log(` Synced ${snippets.length} snippets for user ${userId}`);
 
             } catch (error) {
-                console.error(`❌ Failed to sync snippets for user ${userId}:`, error);
+                console.error(` Failed to sync snippets for user ${userId}:`, error);
             }
         }
 
-        console.log(`🎉 Bulk sync completed! Total snippets synced: ${totalSynced}`);
+        console.log(` Bulk sync completed! Total snippets synced: ${totalSynced}`);
         return { success: true, syncedCount: totalSynced };
 
     } catch (error) {
-        console.error('❌ Bulk sync failed:', error);
+        console.error(' Bulk sync failed:', error);
         throw error;
     }
 };
