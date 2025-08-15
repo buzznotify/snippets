@@ -1,25 +1,31 @@
-import {Snippet} from "../models/snippet";
+import { Snippet } from "../models/snippet";
 
 export const createSnippet = async (user_id, keyName, value, type) => {
     console.log(user_id, keyName, value);
     let snippet;
     snippet = await Snippet.findOne({ user_id: user_id, keyName: keyName });
     if (snippet) {
-        return `keyName ${keyName} already exists.`;
+        return snippet;
     } else {
         snippet = new Snippet({ user_id: user_id, keyName: keyName, value: value, type: type });
         await snippet.save();
-        return `Snippet created successfully`;
+        return snippet;
     }
 }
 
-export const updateSnippet = async (snippet_id, user_id, keyName, value) => {
+export const updateSnippet = async (snippet_id, user_id, keyName, value, type) => {
     let snippet;
     snippet = await Snippet.findOne({ _id: { $ne: snippet_id }, user_id: user_id, keyName: keyName });
     if (snippet) {
-        return `keyName ${keyName} already exists.`;
+        return snippet;
     }
-    snippet = await Snippet.findByIdAndUpdate({ _id: snippet_id }, { keyName: keyName, value: value }, { new: true });
+
+    const updateData = { keyName: keyName, value: value };
+    if (type) {
+        updateData.type = type;
+    }
+
+    snippet = await Snippet.findByIdAndUpdate({ _id: snippet_id }, updateData, { new: true });
     return snippet;
 }
 

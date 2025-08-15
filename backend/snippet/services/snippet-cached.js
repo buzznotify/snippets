@@ -18,7 +18,7 @@ export const createSnippet = async (user_id, keyName, value, type) => {
         const existingCached = await cacheService.redis.getClient().get(cacheKey);
 
         if (existingCached) {
-            return `keyName ${keyName} already exists.`;
+            return existingCached;
         }
 
         // Check database as fallback
@@ -26,7 +26,7 @@ export const createSnippet = async (user_id, keyName, value, type) => {
         if (existingDb) {
             // Cache the existing snippet for future requests
             await cacheService.cacheSnippet(existingDb._id.toString(), existingDb.toObject());
-            return `keyName ${keyName} already exists.`;
+            return existingDb;
         }
 
         // Create new snippet
@@ -51,7 +51,7 @@ export const createSnippet = async (user_id, keyName, value, type) => {
         await cacheService.invalidateUserSnippets(user_id);
 
         console.log('Snippet created successfully with cache-first approach');
-        return `Snippet created successfully`;
+        return snippet;
 
     } catch (error) {
         console.error('Error creating snippet:', error);
@@ -62,16 +62,16 @@ export const createSnippet = async (user_id, keyName, value, type) => {
 /**
  * Update snippet with cache-first approach
  */
-export const updateSnippet = async (snippet_id, user_id, keyName, value) => {
+export const updateSnippet = async (snippet_id, user_id, keyName, value, type) => {
     try {
-        console.log('Updating snippet with cache-first approach:', { snippet_id, user_id, keyName, value });
+        console.log('Updating snippet with cache-first approach:', { snippet_id, user_id, keyName, value, type });
 
         // Check for duplicate keyName in cache first
         const cacheKey = `snippet:${user_id}:${keyName}`;
         const existingCached = await cacheService.redis.getClient().get(cacheKey);
 
         if (existingCached && existingCached._id !== snippet_id) {
-            return `keyName ${keyName} already exists.`;
+            return existingCached;
         }
 
         // Check database as fallback
@@ -84,11 +84,14 @@ export const updateSnippet = async (snippet_id, user_id, keyName, value) => {
         if (existingDb) {
             // Cache the existing snippet
             await cacheService.cacheSnippet(existingDb._id.toString(), existingDb.toObject());
-            return `keyName ${keyName} already exists.`;
+            return existingDb;
         }
 
         // Update in cache first
         const updatedData = { keyName, value, updatedAt: new Date() };
+        if (type) {
+            updatedData.type = type;
+        }
         await cacheService.updateSnippet(snippet_id, updatedData);
 
         // Update in database
