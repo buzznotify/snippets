@@ -68,9 +68,48 @@ const testSnippetCreate = async () => {
     }
 };
 
+const testSnippetList = async () => {
+    const baseUrl = 'http://localhost:3000/api/v1/snippet/list';
+
+    try {
+        const response = await fetch(baseUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer your_auth_token_here'
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Snippets retrieved successfully:', result.data);
+            console.log('Total snippets:', result.data.length);
+
+            // Verify sorting by updated_at (most recent first)
+            if (result.data.length > 1) {
+                const firstSnippet = result.data[0];
+                const secondSnippet = result.data[1];
+                const firstDate = new Date(firstSnippet.updated_at);
+                const secondDate = new Date(secondSnippet.updated_at);
+
+                if (firstDate >= secondDate) {
+                    console.log('✅ Snippets are properly sorted by updated_at (descending)');
+                } else {
+                    console.log('❌ Snippets are not properly sorted');
+                }
+            }
+        } else {
+            const error = await response.json();
+            console.error('Failed to get snippets:', error);
+        }
+    } catch (error) {
+        console.error('Error getting snippets:', error);
+    }
+};
+
 // Example usage:
 // testSnippetUpdate();
 // testSnippetCreate();
+// testSnippetList();
 
 console.log(`
 Snippet API Enhancement Complete!
@@ -95,8 +134,8 @@ The snippet API now returns complete snippet data for both create and update ope
      "value": "snippet_value",
      "type": "text|url",
      "status": "published",
-     "createdAt": "timestamp",
-     "updatedAt": "timestamp"
+     "created_at": "timestamp",
+     "updated_at": "timestamp"
    }
 
 4. Benefits:
@@ -109,6 +148,12 @@ The snippet API now returns complete snippet data for both create and update ope
    POST /api/v1/snippet - Create new snippet
    PATCH /api/v1/snippet - Update existing snippet (including type changes)
    GET /api/v1/snippet?snippet_id=id - Get specific snippet
+   GET /api/v1/snippet/list - Get all user snippets (sorted by updatedAt descending)
 
-The API maintains all existing functionality while providing richer responses with complete snippet data.
+6. Sorting:
+   - All snippet listings are automatically sorted by updated_at in descending order
+   - Most recently updated snippets appear first
+   - Consistent sorting across both cached and non-cached services
+
+The API maintains all existing functionality while providing richer responses with complete snippet data and proper sorting.
 `);
