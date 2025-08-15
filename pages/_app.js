@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps }) {
       <div className="flex w-screen h-screen  overflow-auto">
         <Component {...pageProps} />
       </div>
-      <ThemePanel />
+      {/* <ThemePanel /> */}
     </Theme>
   );
 }

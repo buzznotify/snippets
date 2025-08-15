@@ -1,4 +1,11 @@
-import { Box, Button, Checkbox, Container, Table } from "@radix-ui/themes";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Container,
+  Table,
+} from "@radix-ui/themes";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { PenIcon, TrashIcon } from "lucide-react";
 import React from "react";
 import CreateKeyModal from "./CreateKeyModal";
@@ -45,8 +52,24 @@ function ActiveTable({
                     maxWidth: "200px",
                   }}
                 >
-                  {value}
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <span style={{ cursor: "pointer" }}>
+                        {value?.slice(0, 100)}
+                      </span>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        className="bg-gray-900 text-white px-2 py-1 rounded text-sm max-w-xs break-words"
+                        sideOffset={5}
+                      >
+                        {value}
+                        <Tooltip.Arrow className="fill-gray-900" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
                 </Table.Cell>
+
                 <Table.Cell>{type}</Table.Cell>
                 <Table.Cell>{item?.["Last Updated"]}</Table.Cell>
                 <Table.Cell>
