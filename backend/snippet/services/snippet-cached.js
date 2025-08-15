@@ -15,7 +15,9 @@ export const createSnippet = async (user_id, keyName, value, type) => {
 
         // Check if snippet already exists in cache first
         const cacheKey = `snippet:${user_id}:${keyName}`;
-        const existingCached = await cacheService.redis.getClient().get(cacheKey);
+        const existingCached = await cacheService.redis.executeOperation(async (client) => {
+            return await client.get(cacheKey);
+        });
 
         if (existingCached) {
             return existingCached;
@@ -68,7 +70,9 @@ export const updateSnippet = async (snippet_id, user_id, keyName, value, type) =
 
         // Check for duplicate keyName in cache first
         const cacheKey = `snippet:${user_id}:${keyName}`;
-        const existingCached = await cacheService.redis.getClient().get(cacheKey);
+        const existingCached = await cacheService.redis.executeOperation(async (client) => {
+            return await client.get(cacheKey);
+        });
 
         if (existingCached && existingCached._id !== snippet_id) {
             return existingCached;
@@ -220,7 +224,9 @@ export const getSnippetByKeyName = async (user_id, keyName) => {
 
         // Try cache first using keyName pattern
         const cacheKey = `snippet:${user_id}:${keyName}`;
-        const snippet = await cacheService.redis.getClient().get(cacheKey);
+        const snippet = await cacheService.redis.executeOperation(async (client) => {
+            return await client.get(cacheKey);
+        });
 
         if (snippet) {
             return JSON.parse(snippet);
@@ -238,12 +244,14 @@ export const getSnippetByKeyName = async (user_id, keyName) => {
             await cacheService.cacheSnippet(dbSnippet._id.toString(), dbSnippet.toObject());
 
             // Also cache by keyName for faster lookups
-            await cacheService.redis.getClient().set(
-                cacheKey,
-                JSON.stringify(dbSnippet.toObject()),
-                'EX',
-                3600 // 1 hour TTL for keyName lookups
-            );
+            await cacheService.redis.executeOperation(async (client) => {
+                return await client.set(
+                    cacheKey,
+                    JSON.stringify(dbSnippet.toObject()),
+                    'EX',
+                    3600 // 1 hour TTL for keyName lookups
+                );
+            });
         }
 
         return dbSnippet;
@@ -323,8 +331,12 @@ export const getSnippetCacheStats = async () => {
         const stats = await cacheService.getStats();
         return {
             cacheStatus: cacheService.getStatus(),
-            snippetCount: await cacheService.redis.getClient().keys('snippet:*').then(keys => keys.length),
-            userSnippetsCount: await cacheService.redis.getClient().keys('user_snippets:*').then(keys => keys.length),
+            snippetCount: await cacheService.redis.executeOperation(async (client) => {
+                return await client.keys('snippet:*');
+            }).then(keys => keys.length),
+            userSnippetsCount: await cacheService.redis.executeOperation(async (client) => {
+                return await client.keys('user_snippets:*');
+            }).then(keys => keys.length),
             ...stats
         };
     } catch (error) {
