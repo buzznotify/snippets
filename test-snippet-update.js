@@ -84,15 +84,15 @@ const testSnippetList = async () => {
             console.log('Snippets retrieved successfully:', result.data);
             console.log('Total snippets:', result.data.length);
 
-            // Verify sorting by updated_at (most recent first)
+            // Verify sorting by created_at (most recent first)
             if (result.data.length > 1) {
                 const firstSnippet = result.data[0];
                 const secondSnippet = result.data[1];
-                const firstDate = new Date(firstSnippet.updated_at);
-                const secondDate = new Date(secondSnippet.updated_at);
+                const firstDate = new Date(firstSnippet.created_at);
+                const secondDate = new Date(secondSnippet.created_at);
 
                 if (firstDate >= secondDate) {
-                    console.log('✅ Snippets are properly sorted by updated_at (descending)');
+                    console.log('✅ Snippets are properly sorted by created_at (descending)');
                 } else {
                     console.log('❌ Snippets are not properly sorted');
                 }
@@ -151,8 +151,8 @@ The snippet API now returns complete snippet data for both create and update ope
    GET /api/v1/snippet/list - Get all user snippets (sorted by updatedAt descending)
 
 6. Sorting:
-   - All snippet listings are automatically sorted by updated_at in descending order
-   - Most recently updated snippets appear first
+   - All snippet listings are automatically sorted by created_at in descending order
+   - Most recently created snippets appear first
    - Consistent sorting across both cached and non-cached services
 
 The API maintains all existing functionality while providing richer responses with complete snippet data and proper sorting.

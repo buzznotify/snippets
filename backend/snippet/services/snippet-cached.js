@@ -157,7 +157,7 @@ export const getAllSnippets = async (user_id) => {
                 const dbSnippets = await Snippet.find({
                     user_id: user_id,
                     status: "published"
-                }).sort({ updated_at: -1 }); // Sort by updated_at in descending order (most recent first)
+                }).sort({ created_at: -1 }); // Sort by created_at in descending order (most recent first)
 
                 if (dbSnippets && dbSnippets.length > 0) {
                     // Populate cache with existing data (no sync jobs)

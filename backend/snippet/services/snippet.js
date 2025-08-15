@@ -35,7 +35,7 @@ export const getSnippet = async (snippet_id, user_id) => {
 }
 
 export const getAllSnippets = async (user_id) => {
-    const snippets = await Snippet.find({ user_id: user_id, status: "published" }).sort({ updated_at: -1 }); // Sort by updated_at in descending order (most recent first)
+    const snippets = await Snippet.find({ user_id: user_id, status: "published" }).sort({ created_at: -1 }); // Sort by created_at in descending order (most recent first)
     return snippets;
 }
 
