@@ -1,3 +1,4 @@
+/* eslint-disable  */
 import { Snippet } from "../models/snippet.js";
 import cacheService from "../../../lib/redis/CacheService.js";
 

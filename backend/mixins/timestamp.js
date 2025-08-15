@@ -1,5 +1,3 @@
-import mongoose from "mongoose";
-
 const timestampMixin = (schema) => {
   schema.add({
     created_at: {

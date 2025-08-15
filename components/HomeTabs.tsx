@@ -7,10 +7,19 @@ import {
   deleteSnippetsAPI,
   getAllSnippetsAPI,
   getLocalStorage,
-} from "../_services";
+} from "../pages/_services";
+
+interface Snippet {
+  id: string;
+  keyName: string;
+  value: string;
+  type: string;
+  'Last Updated': string;
+}
+
 function HomeTabs() {
-  const [activeSnippets, setActiveSnippets] = useState([]);
-  const [selectedSnippets, setSelectedSnippets] = useState([]);
+  const [activeSnippets, setActiveSnippets] = useState<Snippet[]>([]);
+
   const getSnippets = () => {
     const token = getLocalStorage("token")?.split('"')[1];
     if (token) {
@@ -19,17 +28,13 @@ function HomeTabs() {
       });
     }
   };
-  const deleteSelectedSnippets = (id) => {
+
+  const deleteSelectedSnippets = (id: string) => {
     const token = getLocalStorage("token")?.split('"')[1];
     if (token) {
       deleteSnippetsAPI(token, id)
         .then((response) => {
           console.log(response);
-          console.log(
-            activeSnippets.length,
-            activeSnippets.filter((snippet) => snippet.id !== id).length,
-            "ll"
-          );
           setActiveSnippets(
             activeSnippets.filter((snippet) => snippet.id !== id)
           );
@@ -40,9 +45,11 @@ function HomeTabs() {
         });
     }
   };
+
   useEffect(() => {
     getSnippets();
   }, []);
+
   return (
     <Tabs.Root defaultValue="active">
       <Tabs.List>
@@ -63,8 +70,6 @@ function HomeTabs() {
             {...{
               activeSnippets,
               setActiveSnippets,
-              setSelectedSnippets,
-              getSnippets,
               deleteSelectedSnippets,
             }}
           />

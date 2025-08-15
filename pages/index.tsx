@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { login, setLocalStorage } from "./_services";
-import HomeTabs from "./_components/HomeTabs";
-import { Box, Button, Container, Heading } from "@radix-ui/themes";
+import React from "react";
+import HomeTabs from "../components/HomeTabs";
+import { Box, Container, Heading } from "@radix-ui/themes";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import CreateKeyModal from "./_components/CreateKeyModal";
 
 const Home = () => {
   return (

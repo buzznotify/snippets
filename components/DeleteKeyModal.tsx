@@ -1,18 +1,18 @@
 import {
   Badge,
   Button,
-  CheckboxCards,
   Dialog,
   Flex,
-  Select,
-  Separator,
-  Text,
-  TextField,
 } from "@radix-ui/themes";
-import { PlusIcon } from "lucide-react";
 import React from "react";
 
-function DeleteKeyModal({ children, keyName, onDelete }) {
+interface DeleteKeyModalProps {
+  children: React.ReactNode;
+  keyName: string;
+  onDelete: () => void;
+}
+
+function DeleteKeyModal({ children, keyName, onDelete }: DeleteKeyModalProps) {
   return (
     <Dialog.Root>
       <Dialog.Trigger>{children}</Dialog.Trigger>

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Checkbox,
   Container,
   Table,
 } from "@radix-ui/themes";
@@ -11,13 +10,25 @@ import React from "react";
 import CreateKeyModal from "./CreateKeyModal";
 import DeleteKeyModal from "./DeleteKeyModal";
 
+interface Snippet {
+  id: string;
+  keyName: string;
+  value: string;
+  type: string;
+  'Last Updated': string;
+}
+
+interface ActiveTableProps {
+  activeSnippets: Snippet[];
+  setActiveSnippets: React.Dispatch<React.SetStateAction<Snippet[]>>;
+  deleteSelectedSnippets: (id: string) => void;
+}
+
 function ActiveTable({
   activeSnippets,
   setActiveSnippets,
-  setSelectedSnippets,
-  getSnippets,
   deleteSelectedSnippets,
-}) {
+}: ActiveTableProps) {
   return (
     <Container className="h-full">
       <Table.Root variant="surface">
@@ -25,9 +36,9 @@ function ActiveTable({
           <Table.Row align="center">
             {Boolean(activeSnippets.length) &&
               Object.keys(activeSnippets?.[0])?.map(
-                (header, index) =>
+                (header) =>
                   header !== "id" && (
-                    <Table.ColumnHeaderCell className="capitalize" key={index}>
+                    <Table.ColumnHeaderCell className="capitalize" key={header}>
                       {header}
                     </Table.ColumnHeaderCell>
                   )
@@ -38,7 +49,7 @@ function ActiveTable({
 
         <Table.Body>
           {activeSnippets.map(
-            ({ id, keyName, value, type, ...item }, index) => (
+            ({ id, keyName, value, type, ...item }) => (
               <Table.Row key={id} align="center">
                 <Table.RowHeaderCell>{keyName}</Table.RowHeaderCell>
                 <Table.Cell

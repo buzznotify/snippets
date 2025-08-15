@@ -1,41 +1,35 @@
 import { Label } from "@radix-ui/react-label";
 import { Box, Button, Card, Flex, TextField } from "@radix-ui/themes";
 import React, { useState } from "react";
-import { loginAPI, setLocalStorage } from "../_services";
+import { loginAPI, setLocalStorage } from "../pages/_services";
 
 function Signin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  let loginUser = async () => {
+  const loginUser = async () => {
     if (!email || !password) {
       alert("Please enter email and password");
     } else if (!email.includes("@")) {
       alert("Please enter a valid email");
     } else {
-      const response = await loginAPI({ email, password });
+      try {
+        const response = await loginAPI({ email, password });
+        const data = await response?.json();
 
-      const data = await response?.json();
-
-      if (response?.status === 200) {
-        const token = data.token;
-        // Save the token to local storage or a cookie.
-        // Proceed with logged-in user actions
-      } else {
-        // Handle login errors appropriately
-        console.error(`Login failed: ${data.message}`);
-      }
-
-      console.log(response, "response");
-      if (data.token) {
-        setLocalStorage("token", data.token);
-        window.location.href = "/";
-      } else {
-        alert("Invalid credentials");
-        return;
+        if (response?.ok) {
+          setLocalStorage("token", data.token);
+          window.location.href = "/";
+        } else {
+          alert(data.message || "Invalid credentials");
+        }
+      } catch (error) {
+        console.error("Login failed:", error);
+        alert("An error occurred during login.");
       }
     }
   };
+
   return (
     <Flex justify="center" align="center" className="w-full h-5/6">
       <Card variant="classic" className="w-5/12">
@@ -50,12 +44,12 @@ function Signin() {
                 type="email"
                 id="email"
                 placeholder="Email"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               />
             </Box>
           </Box>
           <Box>
-            <Label className="text-neutral-500" htmlFor="email">
+            <Label className="text-neutral-500" htmlFor="password">
               Password
             </Label>
             <Box>
@@ -64,7 +58,7 @@ function Signin() {
                 type="password"
                 id="password"
                 placeholder="••••••••"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               />
             </Box>
           </Box>

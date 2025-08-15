@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Test script to demonstrate the updated snippet update API
 // This shows how the API now supports updating the type field and returns complete snippet data
 

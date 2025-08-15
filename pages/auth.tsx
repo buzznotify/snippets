@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { getLocalStorage, login, setLocalStorage } from "./_services";
-import { Box, Button, Flex, Heading, Tabs, TextField } from "@radix-ui/themes";
-import { Label } from "@radix-ui/react-label";
-import AuthTabs from "./_components/AuthTabs";
+import React, { useEffect } from "react";
+import { getLocalStorage } from "./_services";
+import { Box, Heading } from "@radix-ui/themes";
+import AuthTabs from "../components/AuthTabs";
 
-const Login = () => {
+const Auth = () => {
   const checkToken = () => {
     const token = getLocalStorage("token")?.split('"')[1];
     if (token) {
@@ -27,4 +26,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Auth;

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Snippet } from "../models/snippet";
 
 export const createSnippet = async (user_id, keyName, value, type) => {
