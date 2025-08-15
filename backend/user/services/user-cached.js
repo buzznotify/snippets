@@ -350,7 +350,7 @@ export const authRequired = (handler) => async (request, response) => {
  */
 export const syncExistingUsersToCache = async () => {
     try {
-        console.log('🔄 Starting bulk sync of existing users to cache...');
+        console.log('Starting bulk sync of existing users to cache...');
 
         // Get all active users from database
         const allUsers = await User.find({ status: { $ne: "archived" } });
@@ -375,22 +375,22 @@ export const syncExistingUsersToCache = async () => {
                     emailCacheKey,
                     JSON.stringify(user.toObject()),
                     'EX',
-                    3600
+                    3600 // 1 hour TTL for email lookups
                 );
 
                 totalSynced++;
-                console.log(`✅ Synced user: ${user.email}`);
+                console.log(`Synced user: ${user.email}`);
 
             } catch (error) {
-                console.error(`❌ Failed to sync user ${user.email}:`, error);
+                console.error(`Failed to sync user ${user.email}:`, error);
             }
         }
 
-        console.log(`🎉 Bulk sync completed! Total users synced: ${totalSynced}`);
+        console.log(`Bulk sync completed! Total users synced: ${totalSynced}`);
         return { success: true, syncedCount: totalSynced };
 
     } catch (error) {
-        console.error('❌ Bulk sync failed:', error);
+        console.error('Bulk sync failed:', error);
         throw error;
     }
 };
