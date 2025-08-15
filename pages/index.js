@@ -6,7 +6,7 @@ import CreateKeyModal from "./_components/CreateKeyModal";
 
 const Home = () => {
   return (
-    <Container className="flex flex-col items-center w-full pt-20 pb-10">
+    <Container className="flex flex-col items-center h-full w-full my-20">
       <Box className="h-full space-y-4">
         <Heading>Snippets</Heading>
         <HomeTabs />

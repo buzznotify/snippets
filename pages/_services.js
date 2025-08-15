@@ -1,60 +1,77 @@
-const setLocalStorage = async (key, value) => {
+export const setLocalStorage = async (key, value) => {
   await localStorage.setItem(key, JSON.stringify(value));
 };
-const getLocalStorage = (key) => {
+export const getLocalStorage = (key) => {
   return localStorage.getItem(key);
 };
 
-const removeLocalStorage = (key) => {
+export const removeLocalStorage = (key) => {
   return localStorage.removeItem(key);
 };
 
-const getAllDevices = async (token) => {
+export const getAllSnippetsAPI = async (token) => {
   console.log(token, "token abc");
-  return await fetch("/api/v1/device/all", {
+  return await fetch("/api/v1/snippet/list", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: token,
     },
+  }).then(async (response) => {
+    const data = await response?.json();
+    const formattedResponse = formatSnippetListData(data.data);
+    return formattedResponse;
   });
 };
 
-const notifyDevices = async ({ token, ...payload }) => {
-  console.log(payload, "payload");
-  return await fetch("/api/v1/device/notify", {
+export const deleteSnippetsAPI = async (token, id) => {
+  return await fetch("/api/v1/snippet/", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+    },
+    body: JSON.stringify({ snippet_id: id }),
+  }).then(async (response) => {
+    return response;
+  });
+};
+
+export const createSnippetAPI = async (token, payload) => {
+  return await fetch("/api/v1/snippet/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: token,
     },
     body: JSON.stringify(payload),
+  }).then(async (response) => {
+    const data = await response?.json();
+    console.log(data, "createSnippetAPI");
+    const formattedResponse = formatSnippetListData([data.data]);
+    console.log(formattedResponse, "formattedResponse createSnippetAPI");
+    return formattedResponse[0];
   });
 };
 
-const createDeviceGroup = async ({ token, ...payload }) => {
-  return await fetch("/api/v1/device/group", {
-    method: "POST",
+export const updateSnippetAPI = async (token, payload) => {
+  return await fetch(`/api/v1/snippet/`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: token,
     },
     body: JSON.stringify(payload),
+  }).then(async (response) => {
+    const data = await response?.json();
+    console.log(data, "updateSnippetAPI");
+    const formattedResponse = formatSnippetListData([data.data]);
+    console.log(formattedResponse, "formattedResponse updateSnippetAPI");
+    return formattedResponse[0];
   });
 };
 
-const getAllGroups = async (token) => {
-  console.log(token, "token abc");
-  return await fetch("/api/v1/device/group", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-  });
-};
-
-const login = async (payload) => {
+export const loginAPI = async (payload) => {
   return await fetch("/api/v1/auth/login", {
     method: "POST",
     headers: {
@@ -64,13 +81,12 @@ const login = async (payload) => {
   });
 };
 
-export {
-  removeLocalStorage,
-  setLocalStorage,
-  getLocalStorage,
-  getAllDevices,
-  notifyDevices,
-  createDeviceGroup,
-  getAllGroups,
-  login,
+export const formatSnippetListData = (data) => {
+  return data?.map((snippet) => ({
+    id: snippet._id,
+    keyName: snippet.keyName,
+    value: snippet.value,
+    type: snippet.type,
+    "Last Updated": new Date(snippet.updated_at).toLocaleString(),
+  }));
 };

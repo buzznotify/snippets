@@ -1,39 +1,55 @@
-import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
+import { Box, Button, Flex, Tabs } from "@radix-ui/themes";
 import { PlusIcon } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ActiveTable from "./ActiveTable";
-import ArchiveTable from "./ArchiveTable";
 import CreateKeyModal from "./CreateKeyModal";
+import {
+  deleteSnippetsAPI,
+  getAllSnippetsAPI,
+  getLocalStorage,
+} from "../_services";
 function HomeTabs() {
-  const data = [
-    {
-      id: "s_123",
-      key: "omw",
-      value: "On My Way",
-      dtype: "text",
-      date_updated: "now",
-      is_analytical: false,
-    },
-  ];
-  const tableData = data?.map(
-    ({ id, key, value, dtype, date_updated, is_analytical }) => ({
-      id,
-      key,
-      value,
-      type: dtype,
-      "last updated": date_updated,
-      analytics: is_analytical,
-    })
-  );
+  const [activeSnippets, setActiveSnippets] = useState([]);
+  const [selectedSnippets, setSelectedSnippets] = useState([]);
+  const getSnippets = () => {
+    const token = getLocalStorage("token")?.split('"')[1];
+    if (token) {
+      getAllSnippetsAPI(token).then(async (response) => {
+        setActiveSnippets(response);
+      });
+    }
+  };
+  const deleteSelectedSnippets = (id) => {
+    const token = getLocalStorage("token")?.split('"')[1];
+    if (token) {
+      deleteSnippetsAPI(token, id)
+        .then((response) => {
+          console.log(response);
+          console.log(
+            activeSnippets.length,
+            activeSnippets.filter((snippet) => snippet.id !== id).length,
+            "ll"
+          );
+          setActiveSnippets(
+            activeSnippets.filter((snippet) => snippet.id !== id)
+          );
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  };
+  useEffect(() => {
+    getSnippets();
+  }, []);
   return (
     <Tabs.Root defaultValue="active">
       <Tabs.List>
         <Flex width="100%">
           <Tabs.Trigger value="active">Active</Tabs.Trigger>
-          <Tabs.Trigger value="archive">Archive</Tabs.Trigger>
-          <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
         </Flex>
-        <CreateKeyModal>
+        <CreateKeyModal setActiveSnippets={setActiveSnippets}>
           <Button variant="classic">
             <PlusIcon size="20" />
             Create
@@ -43,15 +59,15 @@ function HomeTabs() {
 
       <Box pt="3">
         <Tabs.Content value="active">
-          <ActiveTable {...{ tableData }} />
-        </Tabs.Content>
-
-        <Tabs.Content value="archive">
-          <ArchiveTable {...{ tableData }} />
-        </Tabs.Content>
-
-        <Tabs.Content value="settings">
-          <Text size="2">Edit your profile or update contact information.</Text>
+          <ActiveTable
+            {...{
+              activeSnippets,
+              setActiveSnippets,
+              setSelectedSnippets,
+              getSnippets,
+              deleteSelectedSnippets,
+            }}
+          />
         </Tabs.Content>
       </Box>
     </Tabs.Root>

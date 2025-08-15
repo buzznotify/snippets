@@ -12,7 +12,7 @@ import {
 import { PlusIcon } from "lucide-react";
 import React from "react";
 
-function DeleteKeyModal({ children, keyName }) {
+function DeleteKeyModal({ children, keyName, onDelete }) {
   return (
     <Dialog.Root>
       <Dialog.Trigger>{children}</Dialog.Trigger>
@@ -37,7 +37,9 @@ function DeleteKeyModal({ children, keyName }) {
             </Button>
           </Dialog.Close>
           <Dialog.Close>
-            <Button color="red">Delete</Button>
+            <Button color="red" onClick={onDelete}>
+              Delete
+            </Button>
           </Dialog.Close>
         </Flex>
       </Dialog.Content>
