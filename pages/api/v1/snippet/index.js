@@ -14,9 +14,9 @@ export default authRequired(async function handler(request, response) {
             if (!Object.values(SnippetType).includes(type)) {
                 return response.status(400).json({ message: "Invalid snippet type" });
             }
-            const message = await createSnippet(user_id, keyName, value, type);
+            const snippet = await createSnippet(user_id, keyName, value, type);
 
-            return response.status(200).json({ message: message });
+            return response.status(200).json({ data: snippet });
         } catch (error) {
             console.error(error);
             return response.status(500).send("Failed to create snippet");
@@ -25,10 +25,16 @@ export default authRequired(async function handler(request, response) {
         try {
             const body = await request.body;
             const user_id = request.userId
-            const { snippet_id, keyName, value } = body;
-            const message = await updateSnippet(snippet_id, user_id, keyName, value);
+            const { snippet_id, keyName, value, type } = body;
 
-            return response.status(200).json({ message: message });
+            // Validate type if provided
+            if (type && !Object.values(SnippetType).includes(type)) {
+                return response.status(400).json({ message: "Invalid snippet type" });
+            }
+
+            const snippet = await updateSnippet(snippet_id, user_id, keyName, value, type);
+
+            return response.status(200).json({ data: snippet });
         } catch (error) {
             console.error(error);
             return response.status(500).send("Failed to update snippet");
