@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "worker": "node worker/syncWorker.js"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.0",
@@ -38,11 +39,18 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "autoprefixer": "^10.0.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.1",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.4",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "eslint-plugin-unused-imports": "^3.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "next": "^14.2.4",
     "postcss": "^8",
+    "prettier": "^3.6.2",
     "react": "^18",
     "react-dom": "^18",
     "react-lottie": "^1.2.3",
