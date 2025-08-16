@@ -1,346 +1,254 @@
-import { Snippet } from "../models/snippet.js";
-import cacheService from "../../../lib/redis/CacheService.js";
+// backend/snippet/services/snippet-cached.js
+import { Snippet } from '../models/snippet.js';
+import cacheService from '../../../lib/redis/CacheService.js';
+import syncQueue from '../../../lib/redis/SyncQueue.js';
 
-/**
- * Enhanced Snippet Service with Cache-First Architecture
- * Implements Write-Behind pattern: Cache first, then sync to DB in background
- */
+// ---------- Helpers ----------
+const idxKey = (userId, keyName) => `snippet:idx:${userId}:${keyName}`;
+const sKey = (id) => `snippet:${id}`;
 
-/**
- * Create a new snippet with cache-first approach
- */
+// ---------- Create ----------
 export const createSnippet = async (user_id, keyName, value, type) => {
-    try {
-        console.log('Creating snippet with cache-first approach:', { user_id, keyName, value, type });
+  // Check cache by idx
+  const idFromIdx = await cacheService.redis.executeOperation((c) => c.get(idxKey(user_id, keyName)));
+  if (idFromIdx) {
+    const s = await cacheService.redis.executeOperation((c) => c.get(sKey(idFromIdx)));
+    if (s) return JSON.parse(s);
+  }
 
-        // Check if snippet already exists in cache first
-        const cacheKey = `snippet:${user_id}:${keyName}`;
-        const existingCached = await cacheService.redis.executeOperation(async (client) => {
-            return await client.get(cacheKey);
-        });
+  // Check DB duplicate
+  const existingDb = await Snippet.findOne({ user_id, keyName, status: 'published' });
+  if (existingDb) {
+    // Seed cache atomically
+    const json = JSON.stringify(existingDb.toObject());
+    await cacheService.setSnippetAtomic({
+      id: String(existingDb._id),
+      userId: String(user_id),
+      keyName,
+      json,
+      ttl: 0,
+    });
+    return existingDb;
+  }
 
-        if (existingCached) {
-            return existingCached;
-        }
+  // Create new
+  const snippet = new Snippet({
+    user_id,
+    keyName,
+    value,
+    type,
+    status: 'published',
+    version: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  const payload = snippet.toObject();
+  const json = JSON.stringify(payload);
 
-        // Check database as fallback
-        const existingDb = await Snippet.findOne({ user_id: user_id, keyName: keyName });
-        if (existingDb) {
-            // Cache the existing snippet for future requests
-            await cacheService.cacheSnippet(existingDb._id.toString(), existingDb.toObject());
-            return existingDb;
-        }
+  // Cache first (atomic)
+  await cacheService.setSnippetAtomic({
+    id: String(snippet._id),
+    userId: String(user_id),
+    keyName,
+    json,
+    ttl: 0,
+  });
 
-        // Create new snippet
-        const snippet = new Snippet({
-            user_id: user_id,
-            keyName: keyName,
-            value: value,
-            type: type,
-            status: "published",
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+  // Enqueue idempotent job
+  await syncQueue.addJob(
+    'sync-to-db',
+    { op: 'create', id: String(snippet._id), version: 1, fields: payload },
+    { jobId: `snippet:${snippet._id}:v1`, removeOnComplete: true }
+  );
+  console.log('[SYNC] queued create job', `snippet:${snippet._id}:v1`);  
 
-        // Save to cache first (Write-Behind pattern)
-        const snippetData = snippet.toObject();
-        await cacheService.cacheSnippet(snippet._id.toString(), snippetData);
+  // Invalidate list snapshot (optional)
+  await cacheService.invalidateUserSnippets(user_id);
 
-        // Save to database
-        await snippet.save();
-
-        // Invalidate user snippets collection cache
-        await cacheService.invalidateUserSnippets(user_id);
-
-        console.log('Snippet created successfully with cache-first approach');
-        return snippet;
-
-    } catch (error) {
-        console.error('Error creating snippet:', error);
-        throw error;
-    }
+  return payload;
 };
 
-/**
- * Update snippet with cache-first approach
- */
+// ---------- Update ----------
 export const updateSnippet = async (snippet_id, user_id, keyName, value, type) => {
-    try {
-        console.log('Updating snippet with cache-first approach:', { snippet_id, user_id, keyName, value, type });
-
-        // Check for duplicate keyName in cache first
-        const cacheKey = `snippet:${user_id}:${keyName}`;
-        const existingCached = await cacheService.redis.executeOperation(async (client) => {
-            return await client.get(cacheKey);
-        });
-
-        if (existingCached && existingCached._id !== snippet_id) {
-            return existingCached;
-        }
-
-        // Check database as fallback
-        const existingDb = await Snippet.findOne({
-            _id: { $ne: snippet_id },
-            user_id: user_id,
-            keyName: keyName
-        });
-
-        if (existingDb) {
-            // Cache the existing snippet
-            await cacheService.cacheSnippet(existingDb._id.toString(), existingDb.toObject());
-            return existingDb;
-        }
-
-        // Update in cache first
-        const updatedData = { keyName, value, updatedAt: new Date() };
-        if (type) {
-            updatedData.type = type;
-        }
-        await cacheService.updateSnippet(snippet_id, updatedData);
-
-        // Update in database
-        const snippet = await Snippet.findByIdAndUpdate(
-            { _id: snippet_id },
-            updatedData,
-            { new: true }
-        );
-
-        // Invalidate user snippets collection cache
-        await cacheService.invalidateUserSnippets(user_id);
-
-        console.log('Snippet updated successfully with cache-first approach');
-        return snippet;
-
-    } catch (error) {
-        console.error('Error updating snippet:', error);
-        throw error;
+  // Load current from cache or DB
+  const existing = await cacheService.getSnippet(
+    snippet_id,
+    async () => {
+      const doc = await Snippet.findOne({ _id: snippet_id, user_id });
+      return doc ? doc.toObject() : null;
     }
+  );
+  if (!existing) throw new Error('Snippet not found');
+
+  const oldKeyName = existing.keyName;
+  const version = (existing.version || 1) + 1;
+
+  const updated = {
+    ...existing,
+    keyName,
+    value,
+    ...(type ? { type } : {}),
+    version,
+    updatedAt: new Date(),
+  };
+  const json = JSON.stringify(updated);
+
+  // Cache atomic update (handle key rename)
+  await cacheService.updateSnippetAtomic({
+    id: String(snippet_id),
+    userId: String(user_id),
+    oldKeyName,
+    newKeyName: keyName,
+    json,
+    ttl: 0,
+  });
+
+  // Enqueue idempotent update
+  await syncQueue.addJob(
+    'sync-to-db',
+    { op: 'update', id: String(snippet_id), version, fields: { keyName, value, ...(type ? { type } : {}), updatedAt: updated.updatedAt } },
+    { jobId: `snippet:${snippet_id}:v${version}`, removeOnComplete: true }
+  );
+
+  await cacheService.invalidateUserSnippets(user_id);
+  return updated;
 };
 
-/**
- * Get snippet with cache-first approach
- */
+// ---------- Get by ID ----------
 export const getSnippet = async (snippet_id, user_id) => {
-    try {
-        console.log('Getting snippet with cache-first approach:', { snippet_id, user_id });
-
-        // Try cache first
-        const snippet = await cacheService.getSnippet(
-            snippet_id,
-            async () => {
-                // Cache miss - fetch from database
-                const dbSnippet = await Snippet.findOne({ _id: snippet_id, user_id: user_id });
-                if (dbSnippet) {
-                    // Cache the snippet for future requests
-                    await cacheService.cacheSnippet(snippet_id, dbSnippet.toObject());
-                }
-                return dbSnippet;
-            }
-        );
-
-        return snippet;
-
-    } catch (error) {
-        console.error('Error getting snippet:', error);
-        throw error;
+  const snippet = await cacheService.getSnippet(
+    snippet_id,
+    async () => {
+      const dbSnippet = await Snippet.findOne({ _id: snippet_id, user_id });
+      if (!dbSnippet) return null;
+      // atomic seed (id known but we also need index)
+      const json = JSON.stringify(dbSnippet.toObject());
+      await cacheService.setSnippetAtomic({
+        id: String(snippet_id),
+        userId: String(user_id),
+        keyName: dbSnippet.keyName,
+        json,
+        ttl: 0,
+      });
+      return dbSnippet;
     }
+  );
+  return snippet;
 };
 
-/**
- * Get all snippets for a user with cache-first approach
- */
-export const getAllSnippets = async (user_id) => {
-    try {
-        console.log('Getting all snippets with cache-first approach for user:', user_id);
-
-        // Try cache first
-        const snippets = await cacheService.getUserSnippets(
-            user_id,
-            async () => {
-                // Cache miss - fetch from database
-                const dbSnippets = await Snippet.find({
-                    user_id: user_id,
-                    status: "published"
-                }).sort({ created_at: -1 }); // Sort by created_at in descending order (most recent first)
-
-                if (dbSnippets && dbSnippets.length > 0) {
-                    // Populate cache with existing data (no sync jobs)
-                    const cacheOperations = dbSnippets.map(snippet => ({
-                        key: `snippet:${snippet._id}`,
-                        data: snippet.toObject(),
-                        ttl: null // No TTL for snippets (source of truth)
-                    }));
-
-                    await cacheService.populateCache(cacheOperations);
-                }
-
-                return dbSnippets;
-            }
-        );
-
-        return snippets || [];
-
-    } catch (error) {
-        console.error('Error getting all snippets:', error);
-        throw error;
-    }
-};
-
-/**
- * Delete snippet with cache-first approach
- */
-export const deleteSnippet = async (snippet_id, user_id) => {
-    try {
-        console.log('Deleting snippet with cache-first approach:', { snippet_id, user_id });
-
-        // Delete from cache first
-        await cacheService.deleteSnippet(snippet_id);
-
-        // Update status in database
-        const snippet = await Snippet.findOneAndUpdate(
-            { _id: snippet_id, user_id: user_id },
-            { status: "archived", updatedAt: new Date() },
-            { new: true }
-        );
-
-        // Invalidate user snippets collection cache
-        await cacheService.invalidateUserSnippets(user_id);
-
-        console.log('Snippet deleted successfully with cache-first approach');
-        return `Snippet ${snippet_id} deleted.`;
-
-    } catch (error) {
-        console.error('Error deleting snippet:', error);
-        throw error;
-    }
-};
-
-/**
- * Get snippet by keyName with cache-first approach
- */
+// ---------- Get by keyName ----------
 export const getSnippetByKeyName = async (user_id, keyName) => {
-    try {
-        console.log('Getting snippet by keyName with cache-first approach:', { user_id, keyName });
+  const id = await cacheService.redis.executeOperation((c) => c.get(idxKey(user_id, keyName)));
+  if (id) {
+    const s = await cacheService.redis.executeOperation((c) => c.get(sKey(id)));
+    if (s) return JSON.parse(s);
+  }
 
-        // Try cache first using keyName pattern
-        const cacheKey = `snippet:${user_id}:${keyName}`;
-        const snippet = await cacheService.redis.executeOperation(async (client) => {
-            return await client.get(cacheKey);
-        });
+  const dbSnippet = await Snippet.findOne({ user_id, keyName, status: 'published' });
+  if (!dbSnippet) return null;
 
-        if (snippet) {
-            return JSON.parse(snippet);
-        }
+  const json = JSON.stringify(dbSnippet.toObject());
+  await cacheService.setSnippetAtomic({
+    id: String(dbSnippet._id),
+    userId: String(user_id),
+    keyName,
+    json,
+    ttl: 0,
+  });
 
-        // Cache miss - fetch from database
-        const dbSnippet = await Snippet.findOne({
-            user_id: user_id,
-            keyName: keyName,
-            status: "published"
-        });
-
-        if (dbSnippet) {
-            // Cache the snippet for future requests
-            await cacheService.cacheSnippet(dbSnippet._id.toString(), dbSnippet.toObject());
-
-            // Also cache by keyName for faster lookups
-            await cacheService.redis.executeOperation(async (client) => {
-                return await client.set(
-                    cacheKey,
-                    JSON.stringify(dbSnippet.toObject()),
-                    'EX',
-                    3600 // 1 hour TTL for keyName lookups
-                );
-            });
-        }
-
-        return dbSnippet;
-
-    } catch (error) {
-        console.error('Error getting snippet by keyName:', error);
-        throw error;
-    }
+  return dbSnippet;
 };
 
-/**
- * Bulk sync existing database snippets to cache
- * This ensures all existing data is available in cache
- */
+// ---------- Get all for user ----------
+export const getAllSnippets = async (user_id) => {
+  // try list snapshot
+  const list = await cacheService.getUserSnippets(
+    user_id,
+    async () => {
+      const dbSnippets = await Snippet.find({ user_id, status: 'published' }).sort({ createdAt: -1 });
+      // seed atomically per snippet + set user list snapshot
+      if (dbSnippets?.length) {
+        const ops = [];
+        for (const sn of dbSnippets) {
+          const json = JSON.stringify(sn.toObject());
+          await cacheService.setSnippetAtomic({
+            id: String(sn._id),
+            userId: String(user_id),
+            keyName: sn.keyName,
+            json,
+            ttl: 0,
+          });
+          ops.push(sn.toObject());
+        }
+        await cacheService.cacheUserSnippets(user_id, ops);
+      }
+      return dbSnippets;
+    }
+  );
+  return list || [];
+};
+
+// ---------- Delete (archive) ----------
+export const deleteSnippet = async (snippet_id, user_id) => {
+  // load to know keyName + version
+  const existing = await cacheService.getSnippet(
+    snippet_id,
+    async () => {
+      const doc = await Snippet.findOne({ _id: snippet_id, user_id });
+      return doc ? doc.toObject() : null;
+    }
+  );
+  if (!existing) return `Snippet ${snippet_id} already deleted`;
+
+  const version = (existing.version || 1) + 1;
+
+  await cacheService.deleteSnippetAtomic({
+    id: String(snippet_id),
+    userId: String(user_id),
+    keyName: existing.keyName,
+  });
+
+  await syncQueue.addJob(
+    'sync-to-db',
+    { op: 'archive', id: String(snippet_id), version, fields: { status: 'archived', updatedAt: new Date() } },
+    { jobId: `snippet:${snippet_id}:v${version}`, removeOnComplete: true }
+  );
+
+  await cacheService.invalidateUserSnippets(user_id);
+  return `Snippet ${snippet_id} deleted.`;
+};
+
+// ---------- Bulk sync DB → cache (no jobs) ----------
 export const syncExistingSnippetsToCache = async () => {
-    try {
-        console.log(' Starting bulk sync of existing snippets to cache...');
+  const all = await Snippet.find({ status: 'published' });
+  if (!all.length) return { success: true, syncedCount: 0 };
 
-        // Get all published snippets from database
-        const allSnippets = await Snippet.find({ status: "published" });
-        console.log(`Found ${allSnippets.length} snippets to sync to cache`);
-
-        if (allSnippets.length === 0) {
-            console.log('No snippets to sync');
-            return { success: true, syncedCount: 0 };
-        }
-
-        // Group snippets by user for efficient caching
-        const snippetsByUser = {};
-        allSnippets.forEach(snippet => {
-            const userId = snippet.user_id.toString();
-            if (!snippetsByUser[userId]) {
-                snippetsByUser[userId] = [];
-            }
-            snippetsByUser[userId].push(snippet);
-        });
-
-        let totalSynced = 0;
-
-        // Sync each user's snippets
-        for (const [userId, snippets] of Object.entries(snippetsByUser)) {
-            try {
-                // Cache individual snippets
-                const cacheOperations = snippets.map(snippet => ({
-                    key: `snippet:${snippet._id}`,
-                    data: snippet.toObject(),
-                    ttl: null
-                }));
-
-                await cacheService.populateCache(cacheOperations);
-
-                // Cache user snippets collection
-                await cacheService.cacheUserSnippets(userId, snippets.map(s => s.toObject()));
-
-                totalSynced += snippets.length;
-                console.log(` Synced ${snippets.length} snippets for user ${userId}`);
-
-            } catch (error) {
-                console.error(` Failed to sync snippets for user ${userId}:`, error);
-            }
-        }
-
-        console.log(` Bulk sync completed! Total snippets synced: ${totalSynced}`);
-        return { success: true, syncedCount: totalSynced };
-
-    } catch (error) {
-        console.error(' Bulk sync failed:', error);
-        throw error;
-    }
+  for (const sn of all) {
+    const json = JSON.stringify(sn.toObject());
+    await cacheService.setSnippetAtomic({
+      id: String(sn._id),
+      userId: String(sn.user_id),
+      keyName: sn.keyName,
+      json,
+      ttl: 0,
+    });
+  }
+  // Rebuild user list snapshots (optional; already handled by setSnippetAtomic)
+  return { success: true, syncedCount: all.length };
 };
 
-/**
- * Get cache statistics for snippets
- */
+// ---------- Stats ----------
 export const getSnippetCacheStats = async () => {
-    try {
-        const stats = await cacheService.getStats();
-        return {
-            cacheStatus: cacheService.getStatus(),
-            snippetCount: await cacheService.redis.executeOperation(async (client) => {
-                return await client.keys('snippet:*');
-            }).then(keys => keys.length),
-            userSnippetsCount: await cacheService.redis.executeOperation(async (client) => {
-                return await client.keys('user_snippets:*');
-            }).then(keys => keys.length),
-            ...stats
-        };
-    } catch (error) {
-        console.error('Error getting cache stats:', error);
-        return null;
-    }
+  try {
+    const snippetCount = await cacheService.scanCount('snippet:*');
+    const userSnippetsCount = await cacheService.scanCount('user_snippets:*');
+    return {
+      cacheStatus: cacheService.getStatus(),
+      snippetCount,
+      userSnippetsCount,
+    };
+  } catch (e) {
+    console.error('Error getting cache stats:', e);
+    return null;
+  }
 };
