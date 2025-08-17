@@ -1,0 +1,17 @@
+{
+  "name": "firestore-extension-demo",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "clean": "rimraf public"
+  },
+  "dependencies": {
+    "firebase": "^10.12.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "rimraf": "^5.0.0"
+  }
+}
