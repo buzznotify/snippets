@@ -55,14 +55,35 @@ export default authRequired(async function handler(request, response) {
         }
     } else if (request.method === "GET") {
         try {
-            const snippet_id = await request.query.snippet_id;
-            const user_id = request.userId
+            const snippet_id = request.query.snippet_id;
+            const user_id = request.userId;
+
+            if (!snippet_id) {
+                return response.status(400).json({
+                    success: false,
+                    message: "snippet_id is required"
+                });
+            }
+
             const data = await getSnippet(snippet_id, user_id);
 
-            return response.status(200).json({ data: data });
+            if (!data) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Snippet not found"
+                });
+            }
+
+            return response.status(200).json({
+                success: true,
+                data: data
+            });
         } catch (error) {
-            console.error(error);
-            return response.status(500).send("Failed to delete snippet");
+            console.error("Error fetching snippet:", error);
+            return response.status(500).json({
+                success: false,
+                message: "Failed to fetch snippet"
+            });
         }
     }
 });
