@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence, collection, onSnapshot } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence, collection, onSnapshot, initializeFirestore } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import rawConfig from './firebaseConfig.json' assert { type: 'json' };
 
@@ -8,7 +8,8 @@ const collectionPathTemplate: string = config.collectionPath || 'snippets';
 const authMethod: string = config.auth?.method || 'anonymous';
 
 const app = initializeApp(config);
-const db = getFirestore(app);
+// Use longPolling to avoid WebChannel transport issues behind proxies/VPNs
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const auth = getAuth(app);
 
 try { await enableIndexedDbPersistence(db); } catch {}
@@ -35,9 +36,9 @@ async function start(uid: string) {
 	onSnapshot(colRef, (qs) => {
 		const data: Record<string, any> = {};
 		qs.forEach((doc) => { data[doc.id] = doc.data(); });
-		chrome.runtime.sendMessage({ type: 'firestore-data', payload: { data, path } });
+		chrome.runtime.sendMessage({ type: 'firestore-data', payload: { data, path } }).catch(() => {});
 	}, (err) => {
-		chrome.runtime.sendMessage({ type: 'log', payload: `onSnapshot error: ${err}` });
+		chrome.runtime.sendMessage({ type: 'log', payload: `onSnapshot error: ${err}` }).catch(() => {});
 	});
 }
 
