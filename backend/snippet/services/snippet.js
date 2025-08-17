@@ -43,3 +43,8 @@ export const deleteSnippet = async (snippet_id, user_id) => {
     const snippet = await Snippet.findOneAndUpdate({ _id: snippet_id, user_id: user_id }, { status: "archived" }, { new: true });
     return `Snippet ${snippet_id} deleted.`;
 }
+
+export const getSnippetByKeyName = async (user_id, keyName) => {
+    const snippet = await Snippet.findOne({ user_id: user_id, keyName: keyName, status: "published" });
+    return snippet;
+}
