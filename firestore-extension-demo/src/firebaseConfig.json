@@ -1,0 +1,8 @@
+{
+	"apiKey": "REPLACE",
+	"authDomain": "REPLACE.firebaseapp.com",
+	"projectId": "REPLACE",
+	"appId": "REPLACE",
+	"collectionPath": "demo/snippets",
+	"auth": { "method": "anonymous" }
+}

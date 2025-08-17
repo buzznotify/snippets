@@ -1,12 +1,17 @@
 {
   "name": "firestore-extension-demo",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node esbuild.mjs",
+    "clean": "rimraf public"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "dependencies": {
+    "firebase": "^10.12.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "rimraf": "^5.0.0"
+  }
 }
