@@ -1,0 +1,84 @@
+{
+  "manifest_version": 3,
+  "name": "Smart Snippets - Text Expander",
+  "version": "1.0.0",
+  "description": "Real-time text expansion with Firebase sync. Replace shortcuts with full text instantly.",
+  "author": "Your Company",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "identity",
+    "notifications"
+  ],
+  
+  "host_permissions": [
+    "https://firebaseapp.com/*",
+    "https://firebaseio.com/*",
+    "https://*.firebaseio.com/*",
+    "https://*.googleapis.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content-script.js"],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
+  },
+  
+  "options_page": "options/options.html",
+  
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Open snippet manager"
+    },
+    "toggle-expansion": {
+      "suggested_key": {
+        "default": "Ctrl+Space",
+        "mac": "Command+Space"
+      },
+      "description": "Toggle snippet expansion"
+    }
+  }
+}
