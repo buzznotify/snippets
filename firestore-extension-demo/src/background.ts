@@ -21,4 +21,10 @@ ensureOffscreen();
 
 chrome.runtime.onMessage.addListener((msg) => {
 	if (msg?.type === 'log') console.log('[offscreen]', msg.payload);
+	if (msg?.type === 'firestore-data') {
+		const data = msg.payload?.data || {};
+		const path = msg.payload?.path || '';
+		chrome.storage.local.set({ firestoreSnippets: data, updatedAt: Date.now(), sourcePath: path });
+		chrome.runtime.sendMessage({ type: 'snippets-updated' });
+	}
 });

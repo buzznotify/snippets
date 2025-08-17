@@ -4,10 +4,14 @@ function setOutput(obj: any) {
 }
 
 async function refresh() {
-	const data = await chrome.storage.local.get(['firestoreSnippets', 'updatedAt', 'sourcePath']);
-	setOutput(data.firestoreSnippets || {});
-	(document.getElementById('status')!).textContent = data.updatedAt ? `Updated: ${new Date(data.updatedAt).toLocaleTimeString()}` : '';
-	(document.getElementById('path')!).textContent = data.sourcePath || '';
+	try {
+		const data = await chrome.storage?.local?.get?.(['firestoreSnippets', 'updatedAt', 'sourcePath']);
+		setOutput((data && data.firestoreSnippets) || {});
+		(document.getElementById('status')!).textContent = data?.updatedAt ? `Updated: ${new Date(data.updatedAt).toLocaleTimeString()}` : '';
+		(document.getElementById('path')!).textContent = data?.sourcePath || '';
+	} catch (e) {
+		setOutput({ error: String(e) });
+	}
 }
 
 chrome.runtime.onMessage.addListener((msg) => { if (msg?.type === 'snippets-updated') refresh(); });

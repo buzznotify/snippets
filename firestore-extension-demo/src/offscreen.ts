@@ -4,7 +4,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import rawConfig from './firebaseConfig.json' assert { type: 'json' };
 
 const config = rawConfig as any;
-const collectionPathTemplate: string = config.collectionPath || 'demo/snippets';
+const collectionPathTemplate: string = config.collectionPath || 'snippets';
 const authMethod: string = config.auth?.method || 'anonymous';
 
 const app = initializeApp(config);
@@ -35,8 +35,7 @@ async function start(uid: string) {
 	onSnapshot(colRef, (qs) => {
 		const data: Record<string, any> = {};
 		qs.forEach((doc) => { data[doc.id] = doc.data(); });
-		chrome.storage.local.set({ firestoreSnippets: data, updatedAt: Date.now(), sourcePath: path });
-		chrome.runtime.sendMessage({ type: 'snippets-updated' });
+		chrome.runtime.sendMessage({ type: 'firestore-data', payload: { data, path } });
 	}, (err) => {
 		chrome.runtime.sendMessage({ type: 'log', payload: `onSnapshot error: ${err}` });
 	});
