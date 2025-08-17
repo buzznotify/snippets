@@ -1,7 +1,8 @@
 import { Label } from "@radix-ui/react-label";
 import { Box, Button, Card, Flex, TextField } from "@radix-ui/themes";
 import React, { useState } from "react";
-import { loginAPI, setLocalStorage } from "../_services";
+import { loginAPI, setLocalStorage } from "../../lib/services";
+import { setCookie } from "cookies-next";
 
 function Signin() {
   const [email, setEmail] = useState("");
@@ -29,6 +30,15 @@ function Signin() {
       console.log(response, "response");
       if (data.token) {
         setLocalStorage("token", data.token);
+        // Also set a cookie so the Chrome extension can read the token
+
+        setCookie("token", data.token, {
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: "/",
+          secure: false, // Set to true in production with HTTPS
+          sameSite: "lax", // or 'none' for cross-site access
+          // Don't set httpOnly: true if you need client-side access
+        });
         window.location.href = "/";
       } else {
         alert("Invalid credentials");

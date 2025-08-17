@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { getLocalStorage, login, setLocalStorage } from "./_services";
+import { getLocalStorage } from "../lib/services";
 import { Box, Button, Flex, Heading, Tabs, TextField } from "@radix-ui/themes";
 import { Label } from "@radix-ui/react-label";
 import AuthTabs from "./_components/AuthTabs";

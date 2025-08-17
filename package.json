@@ -21,6 +21,7 @@
     "bull": "^4.16.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cookies-next": "^6.1.0",
     "dotenv": "^17.2.1",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
