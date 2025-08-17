@@ -1,0 +1,74 @@
+/* Content Script Styles */
+
+/* Snippet expansion animation */
+@keyframes snippetExpanded {
+  0% {
+    background-color: rgba(76, 175, 80, 0);
+  }
+  50% {
+    background-color: rgba(76, 175, 80, 0.2);
+  }
+  100% {
+    background-color: rgba(76, 175, 80, 0);
+  }
+}
+
+/* Visual indicator for elements with snippets enabled */
+.snippet-enabled {
+  position: relative;
+}
+
+.snippet-enabled::after {
+  content: '⚡';
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Highlight for snippet keywords while typing */
+.snippet-keyword-highlight {
+  background-color: rgba(33, 150, 243, 0.1);
+  border-bottom: 1px dashed #2196F3;
+}
+
+/* Tooltip for snippet preview */
+.snippet-preview-tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 300px;
+  z-index: 10000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.snippet-preview-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #333;
+}
+
+/* Loading indicator */
+.snippet-loading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Error state */
+.snippet-error {
+  border-color: #f44336 !important;
+  background-color: rgba(244, 67, 54, 0.05) !important;
+}
