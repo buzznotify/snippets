@@ -25,6 +25,6 @@ chrome.runtime.onMessage.addListener((msg) => {
 		const data = msg.payload?.data || {};
 		const path = msg.payload?.path || '';
 		chrome.storage.local.set({ firestoreSnippets: data, updatedAt: Date.now(), sourcePath: path });
-		chrome.runtime.sendMessage({ type: 'snippets-updated' });
+		chrome.runtime.sendMessage({ type: 'snippets-updated' }, () => { void chrome.runtime.lastError; });
 	}
 });
