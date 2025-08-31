@@ -14,7 +14,7 @@ import {
   createSnippetAPI,
   getLocalStorage,
   updateSnippetAPI,
-} from "../../lib/services";
+} from "../lib/services";
 
 function CreateKeyModal({ children, mode = "view", data, setActiveSnippets }) {
   const [snippetKey, setSnippetKey] = useState("");

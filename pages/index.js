@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 // import { login, setLocalStorage } from "./_services";
-import HomeTabs from "./_components/HomeTabs";
+import HomeTabs from "../components/HomeTabs";
 import { Box, Button, Container, Heading } from "@radix-ui/themes";
-import CreateKeyModal from "./_components/CreateKeyModal";
+import CreateKeyModal from "../components/CreateKeyModal";
 
 const Home = () => {
   return (

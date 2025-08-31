@@ -1,7 +1,7 @@
 import { Label } from "@radix-ui/react-label";
 import { Box, Button, Card, Flex, TextField } from "@radix-ui/themes";
 import React, { useState } from "react";
-import { loginAPI, setLocalStorage } from "../../lib/services";
+import { loginAPI, setLocalStorage } from "../lib/services";
 import { setCookie } from "cookies-next";
 
 function Signin() {

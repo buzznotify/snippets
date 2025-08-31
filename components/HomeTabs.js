@@ -7,7 +7,7 @@ import {
   deleteSnippetsAPI,
   getAllSnippetsAPI,
   getLocalStorage,
-} from "../../lib/services";
+} from "../lib/services";
 function HomeTabs() {
   const [activeSnippets, setActiveSnippets] = useState([]);
   const [selectedSnippets, setSelectedSnippets] = useState([]);
