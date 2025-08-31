@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import timestampMixin from '../../mixins/timestamp.js';
+import timestampMixin from '../../database/mixins/timestamp.js';
 
 const snippetSchema = new mongoose.Schema({
     user_id: {

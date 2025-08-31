@@ -37,12 +37,14 @@ export async function createUser(name, email, password) {
 
         // Also cache by email for faster lookups
         const emailCacheKey = `user:email:${email}`;
-        await cacheService.redis.getClient().set(
-            emailCacheKey,
-            JSON.stringify(userData),
-            'EX',
-            3600 // 1 hour TTL for email lookups
-        );
+        await cacheService.redis.executeOperation(async (client) => {
+            await client.set(
+                emailCacheKey,
+                JSON.stringify(userData),
+                'EX',
+                3600 // 1 hour TTL for email lookups
+            );
+        });
 
         console.log(`User created successfully with cache-first approach!`);
         return user;
@@ -180,7 +182,9 @@ export async function getUserByEmailId(email) {
 
         // Try cache first using email
         const emailCacheKey = `user:email:${email}`;
-        const cachedUser = await cacheService.redis.getClient().get(emailCacheKey);
+        const cachedUser = await cacheService.redis.executeOperation(async (client) => {
+            return await client.get(emailCacheKey);
+        });
 
         if (cachedUser) {
             const userData = JSON.parse(cachedUser);
@@ -196,12 +200,14 @@ export async function getUserByEmailId(email) {
             await cacheService.cacheUser(dbUser._id.toString(), dbUser.toObject());
 
             // Also cache by email for faster lookups
-            await cacheService.redis.getClient().set(
-                emailCacheKey,
-                JSON.stringify(dbUser.toObject()),
-                'EX',
-                3600 // 1 hour TTL for email lookups
-            );
+            await cacheService.redis.executeOperation(async (client) => {
+                await client.set(
+                    emailCacheKey,
+                    JSON.stringify(dbUser.toObject()),
+                    'EX',
+                    3600 // 1 hour TTL for email lookups
+                );
+            });
         }
 
         console.log('User found in database');
@@ -371,12 +377,14 @@ export const syncExistingUsersToCache = async () => {
 
                 // Cache user by email
                 const emailCacheKey = `user:email:${user.email}`;
-                await cacheService.redis.getClient().set(
-                    emailCacheKey,
-                    JSON.stringify(user.toObject()),
-                    'EX',
-                    3600
-                );
+                await cacheService.redis.executeOperation(async (client) => {
+                    await client.set(
+                        emailCacheKey,
+                        JSON.stringify(user.toObject()),
+                        'EX',
+                        3600
+                    );
+                });
 
                 totalSynced++;
                 console.log(` Synced user: ${user.email}`);
@@ -401,12 +409,14 @@ export const syncExistingUsersToCache = async () => {
 export const getUserCacheStats = async () => {
     try {
         const stats = await cacheService.getStats();
-        return {
-            cacheStatus: cacheService.getStatus(),
-            userCount: await cacheService.redis.getClient().keys('user:*').then(keys => keys.length),
-            sessionCount: await cacheService.redis.getClient().keys('session:*').then(keys => keys.length),
-            ...stats
-        };
+        return await cacheService.redis.executeOperation(async (client) => {
+            return {
+                cacheStatus: cacheService.getStatus(),
+                userCount: await client.keys('user:*').then(keys => keys.length),
+                sessionCount: await client.keys('session:*').then(keys => keys.length),
+                ...stats
+            };
+        });
     } catch (error) {
         console.error('Error getting cache stats:', error);
         return null;
