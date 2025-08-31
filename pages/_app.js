@@ -11,14 +11,17 @@ function MyApp({ Component, pageProps }) {
     setActiveURL(url);
   }, []);
   return (
-    // <BladeProvider colorScheme="light">
-    <Theme accentColor="lime" grayColor="sage" radius="medium">
-      <div className="flex w-screen h-screen  overflow-hidden">
+    <Theme
+      appearance="dark"
+      accentColor="lime"
+      grayColor="sage"
+      radius="medium"
+    >
+      <div className="flex w-screen h-screen  overflow-auto">
         <Component {...pageProps} />
       </div>
       <ThemePanel />
     </Theme>
-    // </BladeProvider>
   );
 }
 

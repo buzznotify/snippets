@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { login, setLocalStorage } from "./_services";
-import HomeTabs from "./_components/HomeTabs";
+// import { login, setLocalStorage } from "./_services";
+import HomeTabs from "../components/HomeTabs";
 import { Box, Button, Container, Heading } from "@radix-ui/themes";
-import CreateKeyModal from "./_components/CreateKeyModal";
+import CreateKeyModal from "../components/CreateKeyModal";
 
 const Home = () => {
   return (
-    <Container className="flex flex-col items-center w-full pt-20 pb-10">
+    <Container className="flex flex-col items-center h-full w-full my-20">
       <Box className="h-full space-y-4">
         <Heading>Snippets</Heading>
         <HomeTabs />

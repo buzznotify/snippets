@@ -9,14 +9,12 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { PlusIcon } from "lucide-react";
 import React from "react";
 
-function DeleteKeyModal({ children, keyName }) {
+function DeleteKeyModal({ children, keyName, onDelete }) {
   return (
     <Dialog.Root>
       <Dialog.Trigger>{children}</Dialog.Trigger>
-
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>
           Delete
@@ -29,7 +27,6 @@ function DeleteKeyModal({ children, keyName }) {
         <Dialog.Description size="2" mb="4">
           Clicking on delete, will permanently delete your key!
         </Dialog.Description>
-
         <Flex gap="3" mt="4" justify="end">
           <Dialog.Close>
             <Button variant="soft" color="gray">
@@ -37,7 +34,9 @@ function DeleteKeyModal({ children, keyName }) {
             </Button>
           </Dialog.Close>
           <Dialog.Close>
-            <Button color="red">Delete</Button>
+            <Button color="red" onClick={onDelete}>
+              Delete
+            </Button>
           </Dialog.Close>
         </Flex>
       </Dialog.Content>
