@@ -1,16 +1,23 @@
-import { Box, Button, Checkbox, Container, Table } from "@radix-ui/themes";
-import { PenIcon, TrashIcon } from "lucide-react";
-import React from "react";
+import { Badge, Box, Button, Checkbox, Code, Container, Flex, Separator, Table, Text, Tooltip } from "@radix-ui/themes";
+import { CalendarIcon, FileTextIcon, GlobeIcon, PenIcon, TrashIcon } from "lucide-react";
+import React, { useCallback } from "react";
 import CreateKeyModal from "./CreateKeyModal";
 import DeleteKeyModal from "./DeleteKeyModal";
+import moment from "moment";
+import { TRIGGER_SYMBOL } from "@/lib/constants";
 
 function ActiveTable({
   activeSnippets = [],
   setActiveSnippets,
   setSelectedSnippets,
   getSnippets,
-  deleteSelectedSnippets,
 }) {
+  const renderType = useCallback((type) => {
+    if (type === "text") {
+      return <Flex align="center" gap="1"><FileTextIcon color="gray" size="14" /> <Text>Text</Text></Flex>;
+    }
+    return <Flex align="center" gap="1"><GlobeIcon color="gray" size="14" /> <Text>URL</Text></Flex>;
+  }, []);
   return (
     <Container className="h-full">
       <Table.Root variant="surface">
@@ -33,7 +40,7 @@ function ActiveTable({
           {activeSnippets?.map(
             ({ id, keyName, value, type, ...item }, index) => (
               <Table.Row key={id} align="center">
-                <Table.RowHeaderCell>{keyName}</Table.RowHeaderCell>
+                <Table.Cell><Badge highContrast><Text color="lime" weight="bold">{TRIGGER_SYMBOL}</Text>{keyName}</Badge></Table.Cell>
                 <Table.Cell
                   style={{
                     overflow: "hidden",
@@ -47,28 +54,29 @@ function ActiveTable({
                 >
                   {value}
                 </Table.Cell>
-                <Table.Cell>{type}</Table.Cell>
-                <Table.Cell>{item?.["Last Updated"]}</Table.Cell>
+                <Table.Cell>{renderType(type)}</Table.Cell>
+                <Table.Cell><Flex align="center" gap="1"><CalendarIcon color="gray" size="12" />{moment(item?.["Last Updated"], "DD/MM/YYYY, HH:mm:ss").format("MMM D, YYYY h:mm A")}</Flex></Table.Cell>
                 <Table.Cell>
-                  <Box className="flex space-x-4">
+                  <Flex align="center" gap="1">
                     <CreateKeyModal
                       setActiveSnippets={setActiveSnippets}
                       mode="edit"
                       data={{ keyName, value, id }}
                     >
-                      <Button variant="soft">
-                        <PenIcon size="20" />
+                      <Button size="1" variant="soft">
+                        <PenIcon size="16" />
                       </Button>
                     </CreateKeyModal>
                     <DeleteKeyModal
                       keyName={keyName}
-                      onDelete={() => deleteSelectedSnippets(id)}
+                      keyId={id}
+                      getSnippets={getSnippets}
                     >
-                      <Button variant="soft">
-                        <TrashIcon size="20" />
+                      <Button onClick={(e) => console.log(e)} color="red" size="1" variant="soft">
+                        <TrashIcon size="16" />
                       </Button>
                     </DeleteKeyModal>
-                  </Box>
+                  </Flex>
                 </Table.Cell>
               </Table.Row>
             )

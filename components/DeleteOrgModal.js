@@ -1,31 +1,21 @@
-import { TRIGGER_SYMBOL } from "@/lib/constants";
-import { deleteSnippetsAPI, getLocalStorage } from "@/lib/services";
+import React from "react";
 import {
   Badge,
   Button,
-  CheckboxCards,
   AlertDialog,
   Flex,
-  Select,
-  Separator,
-  Text,
-  TextField,
 } from "@radix-ui/themes";
-import React from "react";
+import { deleteOrgAPI, getLocalStorage } from "@/lib/services";
 
-function DeleteKeyModal({ children, keyId, keyName, getSnippets }) {
-  const deleteKey = () => {
+function DeleteOrgModal({ children, org }) {
+  const onDeleteOrg = () => {
     const token = getLocalStorage("token")?.split('"')[1];
-    if (token) {
-      deleteSnippetsAPI(token, keyId)
-        .then((response) => {
-          console.log(response);
-          getSnippets();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+    const payload = {
+      org_id: org.id,
+    };
+    deleteOrgAPI(token, payload).then((response) => {
+      console.log(response, "deleteOrgAPI");
+    });
   };
   return (
     <AlertDialog.Root>
@@ -34,13 +24,12 @@ function DeleteKeyModal({ children, keyId, keyName, getSnippets }) {
         <AlertDialog.Title>
           Delete
           <Badge color="red" size="1" mx="2">
-            {TRIGGER_SYMBOL}
-            {keyName}
+            {org.name}({org.id})
           </Badge>
           ?
         </AlertDialog.Title>
         <AlertDialog.Description size="2" mb="4">
-          Clicking on delete, will permanently delete your key!
+          Clicking on delete, will permanently delete your organization!
         </AlertDialog.Description>
         <Flex gap="3" mt="4" justify="end">
           <AlertDialog.Action>
@@ -49,7 +38,7 @@ function DeleteKeyModal({ children, keyId, keyName, getSnippets }) {
             </Button>
           </AlertDialog.Action>
           <AlertDialog.Action>
-            <Button color="red" onClick={deleteKey}>
+            <Button color="red" onClick={onDeleteOrg}>
               Delete
             </Button>
           </AlertDialog.Action>
@@ -59,4 +48,4 @@ function DeleteKeyModal({ children, keyId, keyName, getSnippets }) {
   );
 }
 
-export default DeleteKeyModal;
+export default DeleteOrgModal;

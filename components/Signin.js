@@ -39,7 +39,7 @@ function Signin() {
           sameSite: "lax", // or 'none' for cross-site access
           // Don't set httpOnly: true if you need client-side access
         });
-        window.location.href = "/";
+        window.location.href = "/org";
       } else {
         alert("Invalid credentials");
         return;

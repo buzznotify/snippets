@@ -15,6 +15,7 @@ import {
   getLocalStorage,
   updateSnippetAPI,
 } from "../lib/services";
+import { TRIGGER_SYMBOL } from "@/lib/constants";
 
 function CreateKeyModal({ children, mode = "view", data, setActiveSnippets }) {
   const [snippetKey, setSnippetKey] = useState("");
@@ -83,8 +84,8 @@ function CreateKeyModal({ children, mode = "view", data, setActiveSnippets }) {
               size="3"
             >
               <TextField.Slot>
-                <Badge variant="soft" size="3" color="lime">
-                  {"//"}
+                <Badge variant="soft" size="3">
+                {TRIGGER_SYMBOL}
                 </Badge>
               </TextField.Slot>
             </TextField.Root>

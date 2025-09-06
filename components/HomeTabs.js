@@ -19,27 +19,6 @@ function HomeTabs() {
       });
     }
   };
-  const deleteSelectedSnippets = (id) => {
-    const token = getLocalStorage("token")?.split('"')[1];
-    if (token) {
-      deleteSnippetsAPI(token, id)
-        .then((response) => {
-          console.log(response);
-          console.log(
-            activeSnippets.length,
-            activeSnippets.filter((snippet) => snippet.id !== id).length,
-            "ll"
-          );
-          setActiveSnippets(
-            activeSnippets.filter((snippet) => snippet.id !== id)
-          );
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-  };
   useEffect(() => {
     getSnippets();
   }, []);
@@ -57,7 +36,7 @@ function HomeTabs() {
         </CreateKeyModal>
       </Tabs.List>
 
-      <Box pt="3">
+      <Box py="3">
         <Tabs.Content value="active">
           <ActiveTable
             {...{
@@ -65,7 +44,6 @@ function HomeTabs() {
               setActiveSnippets,
               setSelectedSnippets,
               getSnippets,
-              deleteSelectedSnippets,
             }}
           />
         </Tabs.Content>

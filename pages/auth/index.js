@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { getLocalStorage } from "../lib/services";
+import { getLocalStorage } from "../../lib/services";
 import { Box, Button, Flex, Heading, Tabs, TextField } from "@radix-ui/themes";
 import { Label } from "@radix-ui/react-label";
-import AuthTabs from "../components/AuthTabs";
+import AuthTabs from "../../components/AuthTabs";
 
 const Login = () => {
   const checkToken = () => {
