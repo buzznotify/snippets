@@ -22,16 +22,15 @@ const Home = () => {
         <Flex justify="between">
           <Heading>Snippets</Heading>
           <DropdownMenu.Root>
-            <DropdownMenu.Trigger>
+            <DropdownMenu.Trigger color="gray">
               <Button className="focus:outline-none focus:ring-0 focus:bg-transparent hover:bg-transparent" variant="ghost">
-                <UserIcon size="20" />
+                <UserIcon size="20" color="gray" />
                 <DropdownMenu.TriggerIcon />
               </Button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               {org ? <DropdownMenu.Item onClick={() => window.location.href = "/org"}>Switch Org <Badge>{org.name}({org.id})</Badge></DropdownMenu.Item> : null}
-              <DropdownMenu.Item onClick={() => window.location.href = "/profile"}>Profile</DropdownMenu.Item>
-              <DropdownMenu.Item color="red" onClick={() => window.location.href = "/logout"}>
+              <DropdownMenu.Item color="red" onClick={() => window.location.href = "/auth/logout"}>
                 Logout
               </DropdownMenu.Item>
             </DropdownMenu.Content>
