@@ -1,4 +1,3 @@
-// import { logIn } from "@/backend/user/services/user-cached";
 import { logIn } from "@/backend/user/services/user";
 import { connectToDB } from "@/backend/database/db";
 
@@ -6,21 +5,41 @@ export default async function handler(request, response) {
   if (request.method === "POST") {
     try {
       await connectToDB();
-      const body = await request.body;
-
+      const body = request.body;
       const { email, password } = body;
-      const token = await logIn(email, password);
 
-      if (token) {
-        return response.status(200).json({ token });
+      if (!email || !password) {
+        return response.status(400).json({
+          success: false,
+          message: "Email and password are required"
+        });
+      }
+
+      const result = await logIn(email, password);
+
+      if (result.success) {
+        return response.status(200).json({
+          success: true,
+          token: result.token,
+          user: result.user
+        });
       } else {
-        return response.status(400).json({ message: "Invalid credentials" });
+        return response.status(401).json({
+          success: false,
+          message: result.message || "Invalid credentials"
+        });
       }
     } catch (error) {
-      console.error(error);
-      return response.status(500).send("Failed to login");
+      console.error("Login error:", error);
+      return response.status(500).json({
+        success: false,
+        message: "Failed to login"
+      });
     }
   } else {
-    return response.status(405).send("Method Not Allowed");
+    return response.status(405).json({
+      success: false,
+      message: "Method Not Allowed"
+    });
   }
 }
